@@ -8,10 +8,10 @@ GitHub Actions installs dependencies, runs tests, builds with Vite, and publishe
 Local development: `npm install`, `npm test`, `npm run dev`. Production build: `npm run build`.
 
 ## Play
-Open menu → Jungle Quest → hold to grow bridge → release to lower → truck crosses or falls → retry same challenge or advance. Progress is saved on level advancement. JSON export/import is available in the menu.
+Open menu → Jungle Quest → hold to grow bridge → release to lower. Campaigns contain variable expeditions and crossings, with three shared expedition restarts. Progress is saved after each crossing or failure. JSON export/import is available in the menu.
 
 ## Known limitations
-- Physical iPhone/iPad playtesting and GitHub Pages release verification remain outstanding.
+- iPad testing confirmed the original bridge mechanic; the new campaign flow and corrected GitHub Actions Pages publishing require device verification.
 - Offline script is a preliminary single-release cache, **not** the fully proven Pop Squadron version-aware update integration. Multi-release A→B→C installed-PWA verification remains outstanding.
 - No installed-PWA icons or approved final artwork yet.
 - Six remaining games intentionally unimplemented.
