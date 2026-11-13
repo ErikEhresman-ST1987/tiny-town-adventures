@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { JungleScene } from './game/JungleScene.js';
-import { advance, fail, startCampaign, campaignLayout } from './game/levels.js';
+import { advance, fail, startCampaign } from './game/levels.js';
 import { readState, writeState, backupText, restoreText } from './state.js';
 import './style.css';
 const $ = id => document.getElementById(id);
@@ -13,7 +13,36 @@ function destroyGame(){document.body.classList.remove('playing');if(game){game.d
 function showMenu(){destroyGame();$('retry').hidden=true;if(state){const p=state.games.jungleQuest;$('play').innerHTML=p.status==='active'?'🚙 Jungle Quest <small>Continue campaign</small>':'🚙 Jungle Quest <small>New campaign</small>';}$('game-screen').hidden=true;$('menu').hidden=false;$('next').hidden=true;status(error||'Choose a game to begin.');}
 function showGame(){if(!state)return;if(state.games.jungleQuest.status!=='active'){status('Campaign finished. Start a new campaign.');return;}destroyGame();$('retry').hidden=true;$('menu').hidden=true;$('game-screen').hidden=false;$('next').hidden=true;outcome=null;active=true;document.body.classList.add('playing');status('Hold on the game to grow a bridge, then release.');
  game=new Phaser.Game({type:Phaser.AUTO,parent:'game',width:390,height:700,backgroundColor:'#9bd8ef',scale:{mode:Phaser.Scale.FIT,autoCenter:Phaser.Scale.CENTER_BOTH},input:{activePointers:2},scene:[],render:{antialias:true}});
- game.events.once(Phaser.Core.Events.READY,()=>game.scene.add('JungleQuest',JungleScene,true,{progress:state.games.jungleQuest,onResult:result=>{if(!active)return;outcome=result;const current=state.games.jungleQuest;const transition=result==='won'?advance(current):fail(current);const next=structuredClone(state);next.games.jungleQuest=transition.progress;if(!persist(next)){active=false;return;}$('next').hidden=false;$('next').textContent=transition.event==='campaign-won'?'New campaign':transition.event==='campaign-lost'?'New campaign':transition.event==='expedition-restart'?'Restart expedition':transition.event==='expedition'?'Next expedition':'Next crossing';$('retry').hidden=true;status(transition.event==='campaign-won'?'Campaign complete!':transition.event==='campaign-lost'?'Campaign lost. All three restarts were used.':transition.event==='expedition-restart'?`Crossing failed. Expedition restarts from crossing one. ${transition.progress.restartsLeft} restarts remain.`:transition.event==='expedition'?'Expedition complete! Continue the campaign.':'Crossing complete!');}}));
+ game.events.once(Phaser.Core.Events.READY,()=>game.scene.add('JungleQuest',JungleScene,true,{
+  progress:state.games.jungleQuest,
+  onAdvance:()=>{
+   if(!active)return false;
+   const transition=advance(state.games.jungleQuest);
+   const next=structuredClone(state);next.games.jungleQuest=transition.progress;
+   return persist(next);
+  },
+  onResult:result=>{
+   if(!active)return;
+   outcome=result;
+   if(result==='lost'){
+    const transition=fail(state.games.jungleQuest);
+    const next=structuredClone(state);next.games.jungleQuest=transition.progress;
+    if(!persist(next)){active=false;return;}
+    if(transition.event==='expedition-restart'){
+     status(`Expedition restarting. ${transition.progress.restartsLeft} restarts remaining.`);
+     showGame();
+     return;
+    }
+    $('next').hidden=false;$('next').textContent='New campaign';
+    status('Campaign lost. All three expedition restarts were used.');
+    return;
+   }
+   const p=state.games.jungleQuest;
+   $('next').hidden=false;
+   $('next').textContent=p.status==='won'?'New campaign':'Next expedition';
+   status(p.status==='won'?'Campaign complete!':'Expedition complete! Continue to the next expedition.');
+  }
+ }));
 }
 $('play').addEventListener('click',()=>{if(!state)return;if(state.games.jungleQuest.status!=='active'){const next=structuredClone(state);next.games.jungleQuest=startCampaign(state.games.jungleQuest);if(!persist(next))return;}showGame();});
 $('retry').addEventListener('click',showGame);
