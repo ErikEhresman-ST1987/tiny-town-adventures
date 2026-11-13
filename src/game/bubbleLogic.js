@@ -19,8 +19,8 @@ export function segmentAt(ring,angle){
  return 'normal';
 }
 export function landing(segment,streak){
- if(streak>=3)return {kind:'smash',streak:0};
  if(segment==='gap')return {kind:'drop',streak:Math.min(3,streak+1)};
+ if(streak>=3)return {kind:'smash',streak:0};
  if(segment==='red')return {kind:'lost',streak:0};
  return {kind:'bounce',streak:0,bonus:segment==='green'?100:0};
 }
