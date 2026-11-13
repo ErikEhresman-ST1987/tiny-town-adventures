@@ -22,5 +22,17 @@ export class JungleScene extends Phaser.Scene {
  release(){if(this.phase!=='growing')return;this.phase='dropping';const length=this.bridgeLength;this.tweens.addCounter({from:-90,to:0,duration:430,ease:'Cubic.easeOut',onUpdate:t=>this.drawBridge(length,Phaser.Math.DegToRad(t.getValue())),onComplete:()=>this.cross(length)});}
  drawBridge(length,angle=0){const x=this.left+68;this.bridge.clear();this.bridge.lineStyle(9,0x9a673b,1);this.bridge.beginPath();this.bridge.moveTo(x,Y-9);this.bridge.lineTo(x+Math.cos(angle)*length,Y-9+Math.sin(angle)*length);this.bridge.strokePath();}
  update(_time,delta){if(this.phase==='growing'){this.bridgeLength=Math.min(290,this.bridgeLength+delta*.15);this.drawBridge(this.bridgeLength,-Math.PI/2);if(this.bridgeLength>=290)this.release();}}
- cross(length){this.phase='crossing';const targetX=this.left+68+length+18;this.tweens.add({targets:this.truck,x:targetX,duration:950,ease:'Linear',onComplete:()=>{if(crossingResult(length,this.level)){this.phase='won';this.hint.setText('Great crossing! 🎉');this.onResult('won');}else{this.phase='lost';this.hint.setText('Oops! Try that bridge again');this.tweens.add({targets:this.truck,y:H+60,angle:35,duration:620,ease:'Quad.easeIn',onComplete:()=>this.onResult('lost')});}}});}
+ cross(length){this.phase='crossing';const targetX=this.left+68+length+18;this.tweens.add({targets:this.truck,x:targetX,duration:950,ease:'Linear',onComplete:()=>{if(crossingResult(length,this.level)){this.phase='won';this.hint.setText('Great crossing! 🎉');this.onResult('won');}else{this.phase='lost';this.hint.setText('Oops! Try that bridge again');this.parachuteFall();}}});}
+ parachuteFall(){
+  // The canopy is decorative: a failed crossing still costs a campaign restart.
+  this.tweens.add({targets:this.truck,y:this.truck.y+52,angle:18,duration:240,ease:'Quad.easeIn',onComplete:()=>{
+   const canopy=this.add.graphics();
+   canopy.fillStyle(0xfff0a3);canopy.fillEllipse(0,-94,104,50);
+   canopy.fillStyle(0xf77f76);canopy.fillEllipse(-28,-95,35,43);canopy.fillEllipse(28,-95,35,43);
+   canopy.lineStyle(2,0x6b5143);canopy.lineBetween(-50,-94,-15,-25);canopy.lineBetween(50,-94,15,-25);canopy.lineBetween(0,-95,0,-25);
+   this.truck.addAt(canopy,0);
+   this.hint.setText('Parachute deployed!\\nExpedition failed');
+   this.tweens.add({targets:this.truck,y:H+85,angle:0,duration:1700,ease:'Sine.easeInOut',onComplete:()=>this.onResult('lost')});
+  }});
+ }
 }
