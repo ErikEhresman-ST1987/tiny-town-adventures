@@ -7,3 +7,11 @@ body.playing #game{width:min(100%,390px);max-height:calc(100dvh - 195px);aspect-
 body.playing #game canvas{max-height:calc(100dvh - 195px);width:auto!important;max-width:100%;height:auto!important;aspect-ratio:390 / 700;touch-action:none}
 body.playing #actions{flex-shrink:0}
 body.playing details,body.playing footer{display:none}
+
+/* Give the portrait game nearly the full available iPad height while keeping browser scroll locked. */
+body.playing header{display:none}
+body.playing #app{max-width:none;padding:0 8px env(safe-area-inset-bottom,0px)}
+body.playing #game-screen{justify-content:center;gap:4px}
+body.playing #game{width:min(100%,390px,calc((100dvh - 78px)*390/700));max-height:calc(100dvh - 78px);height:auto;flex:0 1 auto}
+body.playing #game canvas{width:100%!important;height:auto!important;max-height:calc(100dvh - 78px)}
+body.playing #actions{margin:2px 0 5px}
