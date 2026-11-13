@@ -1,4 +1,5 @@
 import test from 'node:test';
+import {ringAt,segmentAt,landing,newBubbleProgress} from '../src/game/bubbleLogic.js';
 import assert from 'node:assert/strict';
 import {campaignLayout,currentCrossing,crossingResult,newProgress,advance,fail,startCampaign} from '../src/game/levels.js';
 import {initialState,validateState,backupText,restoreText,readState,writeState,KEY} from '../src/state.js';
@@ -31,10 +32,36 @@ test('backup validates before restoration',()=>{
 });
 test('legacy save migrates safely',()=>{
  const old={schemaVersion:1,settings:{sound:false},games:{jungleQuest:{level:2,highestCompleted:1,seed:123,generatorVersion:1}}};
- const updated=validateState(old);assert.equal(updated.schemaVersion,2);assert.equal(updated.games.jungleQuest.status,'active');
+ const updated=validateState(old);assert.equal(updated.schemaVersion,3);assert.equal(updated.games.jungleQuest.status,'active');
 });
 test('corrupt local storage remains untouched',()=>{
  const m=new Map([[KEY,'{broken']]);const storage={getItem:k=>m.get(k)??null,setItem:(k,v)=>m.set(k,v)};
  const {state,error}=readState(storage);assert.equal(state,null);assert.match(error,/could not be loaded/);assert.equal(m.get(KEY),'{broken');
  const valid=initialState();writeState(valid,storage);assert.deepEqual(readState(storage).state,valid);
+});
+test('Bubble Gum Drop geometry and one-use smash',()=>{
+ const ring=ringAt(1,0);
+ assert.deepEqual(ringAt(1,0),ring);
+ assert.equal(segmentAt(ring,ring.gap),'gap');
+ assert.equal(segmentAt(ring,ring.hazard),'red');
+ assert.equal(landing('red',0).kind,'lost');
+ let streak=0;
+ for(let i=0;i<3;i++){const a=landing('gap',streak);assert.equal(a.kind,'drop');streak=a.streak;}
+ assert.equal(streak,3);
+ assert.deepEqual(landing('normal',streak),{kind:'smash',streak:0});
+ assert.deepEqual(landing('red',streak),{kind:'smash',streak:0});
+ assert.deepEqual(landing('green',streak),{kind:'smash',streak:0});
+ assert.deepEqual(landing('gap',streak),{kind:'drop',streak:3});
+ assert.equal(landing('red',0).kind,'lost');
+ assert.equal(landing('normal',2).streak,0);
+});
+test('existing saves migrate without losing Jungle Quest progress',()=>{
+ const original=initialState();
+ const legacy={...original,schemaVersion:2,games:{jungleQuest:original.games.jungleQuest}};
+ const upgraded=validateState(legacy);
+ assert.equal(upgraded.schemaVersion,3);
+ assert.deepEqual(upgraded.games.jungleQuest,original.games.jungleQuest);
+ assert.deepEqual(upgraded.games.bubbleGumDrop,newBubbleProgress());
+ const advanced=structuredClone(upgraded);advanced.games.bubbleGumDrop.level=2;advanced.games.bubbleGumDrop.bestLevel=2;
+ assert.deepEqual(restoreText(backupText(advanced)),advanced);
 });
