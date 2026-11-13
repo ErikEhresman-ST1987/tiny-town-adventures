@@ -26,7 +26,7 @@ export class BubbleScene extends Phaser.Scene{
   this.left.on('pointerdown',()=>this.hold=-1);
   this.right.on('pointerdown',()=>this.hold=1);
   this.input.on('pointerdown',p=>{if(p.y<H-105)this.dragX=p.x;});
-  this.input.on('pointermove',p=>{if(this.dragX===null||!p.isDown||this.phase!=='play')return;const dx=p.x-this.dragX;this.rotation=wrap(this.rotation+dx*0.012);this.dragX=p.x;});
+  this.input.on('pointermove',p=>{if(this.dragX===null||!p.isDown||this.phase!=='play')return;const dx=p.x-this.dragX;this.rotation=wrap(this.rotation-dx*0.012);this.dragX=p.x;});
   this.input.on('pointerup',()=>{this.hold=0;this.dragX=null;});
   this.input.on('pointerupoutside',()=>{this.hold=0;this.dragX=null;});
   this.keys=this.input.keyboard?.addKeys('LEFT,RIGHT');
@@ -73,7 +73,7 @@ export class BubbleScene extends Phaser.Scene{
   let dir=this.hold;
   if(this.keys?.LEFT.isDown)dir=-1;
   if(this.keys?.RIGHT.isDown)dir=1;
-  if(dir)this.rotation=wrap(this.rotation+dir*2.5*dt);
+  if(dir)this.rotation=wrap(this.rotation-dir*2.5*dt);
   const previousFoot=this.ballY+this.ballRadius;
   this.vy=Math.min(1050,this.vy+1250*dt);
   this.ballY+=this.vy*dt;
